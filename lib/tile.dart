@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:debug_console/log.dart';
 
-// with stack trace
 class DebugConsoleTile extends StatefulWidget {
   final DebugConsoleLog log;
   final bool expanded;

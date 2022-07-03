@@ -1,26 +1,25 @@
 part of debug_console;
 
+/// A widget that adds a floating button for debugging purposes.
 class DebugConsolePopup extends StatefulWidget {
   final Widget child;
 
-  final bool shakeEnabled;
   final bool showButton;
 
   final DebugConsoleController controller;
   final List<PopupMenuItem<void>> actions;
-  final bool showStackTrace;
+  final bool expandStackTrace;
   final String? savePath;
 
   DebugConsolePopup({
     super.key,
     required this.child,
 
-    this.shakeEnabled = true,
     this.showButton = true,
     
     DebugConsoleController? controller,
     this.actions = const [],
-    this.showStackTrace = false,
+    this.expandStackTrace = false,
     this.savePath,
   }) :
     controller = controller ?? DebugConsole.instance;
@@ -31,22 +30,6 @@ class DebugConsolePopup extends StatefulWidget {
 
 class _DebugConsolePopupState extends State<DebugConsolePopup> {
   bool isOpen = false;
-  ShakeDetector? shakeDetector;
-  
-  @override
-  void initState() {
-    super.initState();
-    if (!widget.shakeEnabled) return;
-    shakeDetector = ShakeDetector.autoStart(
-      onPhoneShake: () => popup(),
-    );
-  }
-
-  @override
-  void dispose() {
-    shakeDetector?.stopListening();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +64,7 @@ class _DebugConsolePopupState extends State<DebugConsolePopup> {
             child: DebugConsole(
               controller: widget.controller,
               actions: widget.actions,
-              showStackTrace: widget.showStackTrace,
+              expandStackTrace: widget.expandStackTrace,
               savePath: widget.savePath,
             ),
           ),
@@ -92,5 +75,4 @@ class _DebugConsolePopupState extends State<DebugConsolePopup> {
     }
     isOpen = open;
   }
-    
 }

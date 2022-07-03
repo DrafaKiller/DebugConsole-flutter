@@ -9,23 +9,52 @@ import 'package:debug_console/controller.dart';
 import 'package:debug_console/log.dart';
 import 'package:debug_console/tile.dart';
 import 'package:debug_console/utils/scrollable.dart';
-import 'package:shake/shake.dart';
+
+export 'package:debug_console/log.dart';
 
 part 'package:debug_console/popup.dart';
 
+/// # Debug Console
+/// 
+/// A console for debugging Flutter apps, and displaying console messages on the widget.
+/// 
+/// Check the console for prints and errors, while you're testing it, all within your app. Make your own logging or watch for console prints.
+/// 
+/// ## Features
+/// 
+/// * Log your messages
+/// * Display console messages and errors
+/// * Use different levels for better emphasis
+/// * Filter the logs
+/// * Add extra actions to execute from the Debug Console menu
+/// * Check StackTrace of errors
 class DebugConsole extends StatefulWidget {
   final DebugConsoleController controller;
   final List<PopupMenuItem<void>> actions;
 
-  final bool showStackTrace;
+  final bool expandStackTrace;
   final String? savePath;
-
+  
+  /// # Debug Console
+  /// 
+  /// A console for debugging Flutter apps, and displaying console messages on the widget.
+  /// 
+  /// Check the console for prints and errors, while you're testing it, all within your app. Make your own logging or watch for console prints.
+  /// 
+  /// ## Features
+  /// 
+  /// * Log your messages
+  /// * Display console messages and errors
+  /// * Use different levels for better emphasis
+  /// * Filter the logs
+  /// * Add extra actions to execute from the Debug Console menu
+  /// * Check StackTrace of errors
   DebugConsole({
     super.key,
     DebugConsoleController? controller,
     this.actions = const [],
         
-    this.showStackTrace = false,
+    this.expandStackTrace = false,
     this.savePath,
   }) : controller = controller ?? DebugConsole.instance;
 
@@ -40,6 +69,14 @@ class DebugConsole extends StatefulWidget {
 
   static String loadPath = 'debug_console.log';
 
+  /// Adds a log to the root controller, attached with a message, level, timestamp and stack trace.
+  /// 
+  /// The default level is `DebugConsoleLogLevel.normal`.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.instance.log( ... );
+  /// ```
   static void log(
     Object? message, {
     DebugConsoleLevel level = DebugConsoleLevel.normal,
@@ -52,8 +89,20 @@ class DebugConsole extends StatefulWidget {
     stackTrace: stackTrace,
   );
 
+  /// Clears the logs of the root controller.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.instance.clear();
+  /// ```
   static void clear() => instance.clear();
 
+  /// Adds a log to the root controller, with the level `DebugConsoleLevel.info`.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.log(message, level: DebugConsoleLevel.info, ... );
+  /// ```
   static void info(
     Object? message, {
     DateTime? timestamp,
@@ -65,6 +114,12 @@ class DebugConsole extends StatefulWidget {
     stackTrace: stackTrace,
   );
 
+  /// Adds a log to the root controller, with the level `DebugConsoleLevel.warning`.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.log(message, level: DebugConsoleLevel.warning, ... );
+  /// ```
   static void warning(
     Object? message, {
     DateTime? timestamp,
@@ -76,6 +131,12 @@ class DebugConsole extends StatefulWidget {
     stackTrace: stackTrace,
   );
 
+  /// Adds a log to the root controller, with the level `DebugConsoleLevel.error`.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.log(message, level: DebugConsoleLevel.error, ... );
+  /// ```
   static void error(
     Object? message, {
     DateTime? timestamp,
@@ -87,6 +148,12 @@ class DebugConsole extends StatefulWidget {
     stackTrace: stackTrace,
   );
 
+  /// Adds a log to the root controller, with the level `DebugConsoleLevel.fatal`.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.log(message, level: DebugConsoleLevel.fatal, ... );
+  /// ```
   static void fatal(
     Object? message, {
     DateTime? timestamp,
@@ -98,6 +165,12 @@ class DebugConsole extends StatefulWidget {
     stackTrace: stackTrace,
   );
 
+  /// Adds a log to the root controller, with the level `DebugConsoleLevel.debug`.
+  /// 
+  /// Same as:
+  /// ```dart
+  /// DebugConsole.log(message, level: DebugConsoleLevel.debug, ... );
+  /// ```
   static void debug(
     Object? message, {
     DateTime? timestamp,
@@ -109,6 +182,17 @@ class DebugConsole extends StatefulWidget {
     stackTrace: stackTrace,
   );
   
+  /// Listen for prints and errors, to catch all messages in your app.
+  /// 
+  /// Everything inside that function will be automatically logged.
+  /// 
+  /// ```dart
+  /// DebugConsole.listen(() {
+  ///   runApp(const MyApp());
+  /// });
+  /// ```
+  /// 
+  /// * A controller can be given, instead of logging to the root.
   static void listen(void Function() body, { DebugConsoleController? controller }) {
     controller ??= DebugConsole.instance;
     runZoned(
@@ -131,7 +215,7 @@ class _DebugConsoleState extends State<DebugConsole> {
   StreamSubscription<List<DebugConsoleLog>>? subscription;
   List<DebugConsoleLog> logs = [];
 
-  bool showStackTrace = false;
+  bool expandStackTrace = false;
   bool save = true;
   String filter = '';
 
@@ -142,7 +226,7 @@ class _DebugConsoleState extends State<DebugConsole> {
     super.initState();
     textController = TextEditingController();
 
-    showStackTrace = widget.showStackTrace;
+    expandStackTrace = widget.expandStackTrace;
 
     subscription = widget.controller.stream.listen((logs) {
       if (widget.savePath != null && save) saveToFile(logs: logs);
@@ -162,7 +246,10 @@ class _DebugConsoleState extends State<DebugConsole> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredLogs = filter.isEmpty ? logs : logs.where((log) => filter.split(',').any((filter) => log.message.toLowerCase().contains(filter.toLowerCase()))).toList();
+    final filteredLogs = filter.isEmpty ? logs : logs.where((log) => filter.split(',').any((filter) {
+      filter = filter.trim();
+      return filter.isNotEmpty && log.message.toLowerCase().contains(filter.toLowerCase());
+    })).toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Debug Console'),
@@ -191,15 +278,15 @@ class _DebugConsoleState extends State<DebugConsole> {
                 child: StatefulBuilder(
                   builder: (context, setCheckboxState) => Row(
                     children: [
-                      const Expanded(child: Text('Show Stack Trace')),
+                      const Expanded(child: Text('Expand StackTrace')),
                       Checkbox(
-                        value: showStackTrace,
-                        onChanged: (value) => setCheckboxState(() => setState(() => showStackTrace = value!)),
+                        value: expandStackTrace,
+                        onChanged: (value) => setCheckboxState(() => setState(() => expandStackTrace = value!)),
                       ),
                     ],
                   ),
                 ),
-                onTap: () => setState(() => showStackTrace = !showStackTrace),
+                onTap: () => setState(() => expandStackTrace = !expandStackTrace),
               ),
               if (widget.savePath != null)
                 PopupMenuItem(
@@ -244,7 +331,7 @@ class _DebugConsoleState extends State<DebugConsole> {
               itemCount: filteredLogs.length,
               itemBuilder: (context, index) {
                 final log = filteredLogs[index];
-                return DebugConsoleTile(log, key: ValueKey(log.timestamp), expanded: showStackTrace);
+                return DebugConsoleTile(log, key: ValueKey(log.timestamp), expanded: expandStackTrace);
               },
             ),
           Positioned(
@@ -273,7 +360,10 @@ class _DebugConsoleState extends State<DebugConsole> {
                   const SizedBox(width: 5),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    onPressed: () => textController!.clear(),
+                    onPressed: () {
+                      textController!.clear();
+                      setState(() => filter = '');
+                    },
                   ),
                   const SizedBox(width: 5),
                   FloatingActionButton(

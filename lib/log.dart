@@ -3,9 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class DebugConsoleLog {
+  /// Message of the log.
   final String message;
+
+  /// Log level, used to determine the color and importance of the log.
   final DebugConsoleLevel level;
+
+  /// Time of when the log was created.
   final DateTime timestamp;
+
   final StackTrace? stackTrace;
 
   DebugConsoleLog({
