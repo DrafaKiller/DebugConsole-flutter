@@ -8,8 +8,11 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  expandable: ^5.0.1
   flutter:
     sdk: flutter
+  rxdart: ^0.27.4
+  shake: ^2.1.0
 
 dev_dependencies:
   flutter_test:
